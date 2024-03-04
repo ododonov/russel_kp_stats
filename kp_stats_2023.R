@@ -8,14 +8,14 @@ games <- read.csv('russel_kp_stats/kp_games.csv', header = T, sep = ';')
 games$points <- as.numeric(str_replace(games$points, ',', '.'))
 
 #Тип сложности преобразуем в число и пересчитываем
-games$difficulty <- 1 - as.numeric(str_replace(games$difficulty, ',', '.'))
+games$difficulty <- as.numeric(str_replace(games$difficulty, ',', '.'))
 
 #Тип игр преобразуем в фактор
 games$type <- factor(games$type, labels = c('Классика', 'Финал'))
 
 #Баллы и сложность преобразуем в рейтинг
 games$rating <- ifelse(11 - games$place > 0, 11 - games$place, 0)
-games$rating <- games$rating * games$difficulty * games$points / games$points_max
+games$rating <- games$rating * (games$points / games$points_max) / games$difficulty
 
 #Составы команд преобразуем в вектор
 games$team <- lapply(strsplit(games$team, ','), function(x) as.integer(x))
