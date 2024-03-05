@@ -32,6 +32,8 @@ for (player in players$id) {
 
 veterans <- players[players$games_number >= 10 , ]
 
+games$date[!unlist(lapply(games$team, function(x) 6 %in% x))]
+
 ggplot(games, aes(x = date, y = rating))+
   geom_line()+
   geom_point()
