@@ -1,9 +1,12 @@
-library('stringr')
+library(ggplot2)
+library(stringr)
 
 #Считываем файлы
 players <- read.csv('russel_kp_stats/kp_players.csv', header = T, sep = ';')
 games <- read.csv('russel_kp_stats/kp_games.csv', header = T, sep = ';')
 
+#Тип даты преобразуем в дату
+games$date <- as.Date(games$date, format = "%d.%m.%y")
 #Тип очков преобразуем в число
 games$points <- as.numeric(str_replace(games$points, ',', '.'))
 
@@ -27,8 +30,11 @@ for (player in players$id) {
   players$mean_points[player] <- mean(games$points[unlist(lapply(games$team, function(x) player %in% x))])
 }
 
-veterans <- players[players$games_number > 10 , ]
-hist(x <- veterans$mean_rating)
+veterans <- players[players$games_number >= 10 , ]
+
+ggplot(games, aes(x = date, y = rating))+
+  geom_line()+
+  geom_point()
 
 
 
