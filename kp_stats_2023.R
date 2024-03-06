@@ -11,14 +11,14 @@ games$date <- as.Date(games$date, format = "%d.%m.%y")
 games$points <- as.numeric(str_replace(games$points, ',', '.'))
 
 #Тип сложности преобразуем в число и пересчитываем
-games$difficulty <- as.numeric(str_replace(games$difficulty, ',', '.'))
+games$difficulty <- 1/as.numeric(str_replace(games$difficulty, ',', '.'))
 
 #Тип игр преобразуем в фактор
 games$type <- factor(games$type, labels = c('Классика', 'Финал'))
 
 #Баллы и сложность преобразуем в рейтинг
 games$rating <- ifelse(11 - games$place > 0, 11 - games$place, 0)
-games$rating <- games$rating * (games$points / games$points_max) / games$difficulty
+games$rating <- games$rating * (games$points / games$points_max) * games$difficulty
 
 #Составы команд преобразуем в вектор
 games$team <- lapply(strsplit(games$team, ','), function(x) as.integer(x))
@@ -38,6 +38,10 @@ ggplot(games, aes(x = date, y = rating))+
   geom_line()+
   geom_point()
 
+
+#Прогноз на игру
+team <- c(2)
+team_mean_rating <- mean(players$mean_rating[players$id %in% team])
 
 
 
