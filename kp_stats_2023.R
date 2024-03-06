@@ -32,17 +32,16 @@ for (player in players$id) {
 
 veterans <- players[players$games_number >= 10 , ]
 
-games$date[!unlist(lapply(games$team, function(x) 6 %in% x))]
-
+#Игры, где играл игрок с player_id
+player_id <- 1
+player_in_team <- unlist(lapply(games$team, function(x) player_id %in% x))
 ggplot(games, aes(x = date, y = rating))+
   geom_line()+
-  geom_point()
-
+  geom_point(aes(col = player_in_team, size = type))+
+  theme(legend.position = 'bottom')
 
 #Прогноз на игру
 team <- c(2)
 team_mean_rating <- mean(players$mean_rating[players$id %in% team])
-
-
 
 
