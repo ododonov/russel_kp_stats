@@ -10,8 +10,11 @@ games$date <- as.Date(games$date, format = "%d.%m.%y")
 #Тип очков преобразуем в число
 games$points <- as.numeric(str_replace(games$points, ',', '.'))
 
-#Тип сложности преобразуем в число и пересчитываем
-games$difficulty <- 1/as.numeric(str_replace(games$difficulty, ',', '.'))
+#Рассчитываем сложность каждой игры
+games$points_1p <- as.numeric(str_replace(games$points_1p, ',', '.'))
+games$points_2p <- as.numeric(str_replace(games$points_2p, ',', '.'))
+games$points_3p <- as.numeric(str_replace(games$points_3p, ',', '.'))
+games$difficulty <- 1/((games$points_1p + games$points_2p + games$points_3p)/(3*games$points_max))
 
 #Тип игр преобразуем в фактор
 games$type <- factor(games$type, labels = c('Классика', 'Финал'))
@@ -32,16 +35,20 @@ for (player in players$id) {
 
 veterans <- players[players$games_number >= 10 , ]
 
-#Игры, где играл игрок с player_id
-player_id <- 1
-player_in_team <- unlist(lapply(games$team, function(x) player_id %in% x))
+#Игры, где играли игроки с players_id
+players_id <- c(2,23,8)
+players_in_team <- unlist(lapply(games$team, function(x) all(players_id %in% x)))
+
+#Тенденция игр
 ggplot(games, aes(x = date, y = rating))+
   geom_line()+
-  geom_point(aes(col = player_in_team, size = type))+
+  geom_smooth()+
+  geom_point(size = 3, aes(col = players_in_team, shape = type))+
   theme(legend.position = 'bottom')
 
 #Прогноз на игру
-team <- c(2)
+team <- c(1, 3, 6, 7, 8, 11, 21, 26)
 team_mean_rating <- mean(players$mean_rating[players$id %in% team])
+team_mean_points <- mean(players$mean_points[players$id %in% team])
 
 
