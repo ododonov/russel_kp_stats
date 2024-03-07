@@ -14,7 +14,7 @@ games$points <- as.numeric(str_replace(games$points, ',', '.'))
 games$points_1p <- as.numeric(str_replace(games$points_1p, ',', '.'))
 games$points_2p <- as.numeric(str_replace(games$points_2p, ',', '.'))
 games$points_3p <- as.numeric(str_replace(games$points_3p, ',', '.'))
-games$difficulty <- 1/((games$points_1p + games$points_2p + games$points_3p)/(3*games$points_max))
+games$difficulty <- (3*games$points_max)/(games$points_1p + games$points_2p + games$points_3p)
 
 #Тип игр преобразуем в фактор
 games$type <- factor(games$type, labels = c('Классика', 'Финал'))
@@ -36,7 +36,7 @@ for (player in players$id) {
 veterans <- players[players$games_number >= 10 , ]
 
 #Игры, где играли игроки с players_id
-players_id <- c(2,23,8)
+players_id <- c(7,8)
 players_in_team <- unlist(lapply(games$team, function(x) all(players_id %in% x)))
 
 #Тенденция игр
@@ -50,5 +50,5 @@ ggplot(games, aes(x = date, y = rating))+
 team <- c(1, 3, 6, 7, 8, 11, 21, 26)
 team_mean_rating <- mean(players$mean_rating[players$id %in% team])
 team_mean_points <- mean(players$mean_points[players$id %in% team])
-
+mean(games$points_max) / mean(games$difficulty)
 
