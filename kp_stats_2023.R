@@ -2,8 +2,8 @@ library(ggplot2)
 library(stringr)
 
 #Считываем файлы
-players <- read.csv('russel_kp_stats/kp_players.csv', header = T, sep = ';')
-games <- read.csv('russel_kp_stats/kp_games.csv', header = T, sep = ';')
+players <- read.csv('kp_players.csv', header = T, sep = ';')
+games <- read.csv('kp_games.csv', header = T, sep = ';')
 
 #Тип даты преобразуем в дату
 games$date <- as.Date(games$date, format = "%d.%m.%y")
@@ -36,8 +36,11 @@ for (player in players$id) {
 veterans <- players[players$games_number >= 10 , ]
 
 #Игры, где играли игроки с players_id
-players_id <- c(7,8)
+players_id <- c(8,13)
 players_in_team <- unlist(lapply(games$team, function(x) all(players_id %in% x)))
+##ТЕСТ
+unlist(lapply(games$team, function(x) all(players_id %in% x)))
+mean(games$rating[players_in_team])
 
 #Тенденция игр
 ggplot(games, aes(x = date, y = rating))+
@@ -45,6 +48,22 @@ ggplot(games, aes(x = date, y = rating))+
   geom_smooth()+
   geom_point(size = 3, aes(col = players_in_team, shape = type))+
   theme(legend.position = 'bottom')
+
+##Расчет лучших пар
+m_size <- length(veterans$id)
+veterans_rating <- matrix(NA, nrow = m_size, ncol = m_size, dimnames = list(veterans$id, veterans$id))
+
+for (i in 1:m_size) {
+  for (j in 1:m_size) {
+    if (i != j) {
+      played_games <- unlist(lapply(games$team, function(x) all(c(i, j) %in% x)))
+      if (any(played_games) > 0) {
+        pair_rating <- mean(games$rating[played_games])
+        veterans_rating[i,j] <- pair_rating
+      }
+    }
+  }
+}
 
 #Прогноз на игру
 team <- c(1, 3, 6, 7, 8, 11, 21, 26)
