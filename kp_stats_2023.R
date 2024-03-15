@@ -1,5 +1,6 @@
 library(ggplot2)
 library(stringr)
+library(reshape2)
 
 #Считываем файлы
 players <- read.csv('kp_players.csv', header = T, sep = ';')
@@ -36,11 +37,12 @@ for (player in players$id) {
 veterans <- players[players$games_number >= 10 , ]
 
 #Игры, где играли игроки с players_id
-players_id <- c(8,13)
+players_id <- c(13)
 players_in_team <- unlist(lapply(games$team, function(x) all(players_id %in% x)))
 ##ТЕСТ
 unlist(lapply(games$team, function(x) all(players_id %in% x)))
 mean(games$rating[players_in_team])
+games$date[players_in_team]
 
 #Тенденция игр
 ggplot(games, aes(x = date, y = rating))+
@@ -51,19 +53,32 @@ ggplot(games, aes(x = date, y = rating))+
 
 ##Расчет лучших пар
 m_size <- length(veterans$id)
-veterans_rating <- matrix(NA, nrow = m_size, ncol = m_size, dimnames = list(veterans$id, veterans$id))
+rating_mtx <- matrix(NA, nrow = m_size, ncol = m_size, dimnames = list(veterans$id, veterans$id))
 
-for (i in 1:m_size) {
-  for (j in 1:m_size) {
+for (i in unlist(dimnames(rating_mtx)[1])) {
+  for (j in unlist(dimnames(rating_mtx)[2])) {
     if (i != j) {
       played_games <- unlist(lapply(games$team, function(x) all(c(i, j) %in% x)))
       if (any(played_games) > 0) {
         pair_rating <- mean(games$rating[played_games])
-        veterans_rating[i,j] <- pair_rating
+        rating_mtx[i,j] <- pair_rating
       }
     }
   }
 }
+
+id_to_name <- setNames(players$name, players$id)
+rownames(rating_mtx) <- id_to_name[rownames(rating_mtx)]
+colnames(rating_mtx) <- id_to_name[colnames(rating_mtx)]
+
+rating_df <- melt(rating_mtx)
+colnames(rating_df) <- c('player1', 'player2', 'rating')
+
+ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
+  geom_raster() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # Поворот текста на оси X для лучшей читаемости
+  labs(fill = "Рейтинг", x = "Игрок 1", y = "Игрок 2") + # Подписи
+  scale_fill_gradient(low = "#FFDAAD", high = "#98FB98")
 
 #Прогноз на игру
 team <- c(1, 3, 6, 7, 8, 11, 21, 26)
