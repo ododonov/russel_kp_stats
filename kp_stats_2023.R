@@ -33,6 +33,7 @@ for (player in players$id) {
   players$mean_rating[player] <- mean(games$rating[unlist(lapply(games$team, function(x) player %in% x))])
   players$mean_points[player] <- mean(games$points[unlist(lapply(games$team, function(x) player %in% x))])
 }
+rm(player)
 
 veterans <- players[players$games_number >= 10 , ]
 
@@ -66,10 +67,12 @@ for (i in unlist(dimnames(rating_mtx)[1])) {
     }
   }
 }
+rm(i,j, m_size)
 
 id_to_name <- setNames(players$name, players$id)
 rownames(rating_mtx) <- id_to_name[rownames(rating_mtx)]
 colnames(rating_mtx) <- id_to_name[colnames(rating_mtx)]
+rating_mtx <- rating_mtx[order(rownames(rating_mtx)), order(colnames(rating_mtx))]
 
 rating_df <- melt(rating_mtx)
 colnames(rating_df) <- c('player1', 'player2', 'rating')
@@ -78,10 +81,12 @@ ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
   geom_raster() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # Поворот текста на оси X для лучшей читаемости
   labs(fill = "Рейтинг", x = "Игрок 1", y = "Игрок 2") + # Подписи
-  scale_fill_gradient(low = "#FFDAAD", high = "#98FB98")
+  scale_fill_gradient(low = "#FF5030", high = "#98FB98")
+
+rating_mtx[lower.tri(rating_mtx)] <- NA #для удобства табличного представления
 
 #Прогноз на игру
-team <- c(1, 3, 6, 7, 8, 11, 21, 26)
+team <- c(1, 2, 3, 4, 5, 6, 7, 8, 11)
 team_mean_rating <- mean(players$mean_rating[players$id %in% team])
 team_mean_points <- mean(players$mean_points[players$id %in% team])
 mean(games$points_max) / mean(games$difficulty)
