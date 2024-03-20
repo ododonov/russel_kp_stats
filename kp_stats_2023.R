@@ -38,7 +38,7 @@ rm(player)
 veterans <- players[players$games_number >= 10 , ]
 
 #Игры, где играли игроки с players_id
-players_id <- c(13)
+players_id <- c(7)
 players_in_team <- unlist(lapply(games$team, function(x) all(players_id %in% x)))
 ##ТЕСТ
 unlist(lapply(games$team, function(x) all(players_id %in% x)))
