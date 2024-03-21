@@ -2,9 +2,13 @@ library(ggplot2)
 library(stringr)
 library(reshape2)
 
+###
+#Импорт и преобразования
+###
+
 #Считываем файлы
-players <- read.csv('kp_players.csv', header = T, sep = ';')
-games <- read.csv('kp_games.csv', header = T, sep = ';')
+players <- read.csv('data/kp_players.csv', header = T, sep = ';')
+games <- read.csv('data/kp_games.csv', header = T, sep = ';')
 
 #Тип даты преобразуем в дату
 games$date <- as.Date(games$date, format = "%d.%m.%y")
@@ -27,6 +31,10 @@ games$rating <- games$rating * (games$points / games$points_max) * games$difficu
 #Составы команд преобразуем в вектор
 games$team <- lapply(strsplit(games$team, ','), function(x) as.integer(x))
 
+###
+#Расчеты
+###
+
 #средний рейтинг команды среди игр каждого игрока
 for (player in players$id) {
   players$games_number[player] <- length(games$date[unlist(lapply(games$team, function(x) player %in% x))])
@@ -35,7 +43,19 @@ for (player in players$id) {
 }
 rm(player)
 
+players$rating_cat <- cut(players$mean_rating, breaks = c(0,5,6,7,8,9,10,Inf), labels = c('F','D','C','B','A','S','S+'))
+players$name <- factor(players$name, levels = players$name[order(players$mean_rating)])
 veterans <- players[players$games_number >= 10 , ]
+
+#создание палитры цветов для рейтинга
+color_palette <- colorRampPalette(c('#FF5030', '#FFA540', '#FFFF90', '#008030'))
+colors <- color_palette(7)
+named_colors <- setNames(colors, levels(players$rating_cat))
+
+ggplot(players, aes(x = name, y = mean_rating, fill = rating_cat))+
+  geom_bar(stat = "identity", width = 0.5)+
+  scale_fill_manual(values = colors)+
+  coord_flip()
 
 #Игры, где играли игроки с players_id
 players_id <- c(7)
@@ -76,6 +96,7 @@ rating_mtx <- rating_mtx[order(rownames(rating_mtx)), order(colnames(rating_mtx)
 
 rating_df <- melt(rating_mtx)
 colnames(rating_df) <- c('player1', 'player2', 'rating')
+rm(rating_mtx)
 
 ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
   geom_raster() +
