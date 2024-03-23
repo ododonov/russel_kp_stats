@@ -48,7 +48,7 @@ players$name <- factor(players$name, levels = players$name[order(players$mean_ra
 veterans <- players[players$games_number >= 10 , ]
 
 #создание палитры цветов для рейтинга
-color_palette <- colorRampPalette(c('#FF5030', '#FFA540', '#FFFF90', '#008030'))
+color_palette <- colorRampPalette(c('#FF5030', '#FFFF90', '#008030', '#1188FF'))
 colors <- color_palette(7)
 named_colors <- setNames(colors, levels(players$rating_cat))
 
@@ -96,7 +96,6 @@ rating_mtx <- rating_mtx[order(rownames(rating_mtx)), order(colnames(rating_mtx)
 
 rating_df <- melt(rating_mtx)
 colnames(rating_df) <- c('player1', 'player2', 'rating')
-rm(rating_mtx)
 
 ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
   geom_raster() +
@@ -105,10 +104,11 @@ ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
   scale_fill_gradient(low = "#FF5030", high = "#98FB98")
 
 rating_mtx[lower.tri(rating_mtx)] <- NA #для удобства табличного представления
+rating_df <- melt(rating_mtx)
+rm(rating_mtx)
 
 #Прогноз на игру
 team <- c(1, 2, 3, 4, 5, 6, 7, 8, 11)
 team_mean_rating <- mean(players$mean_rating[players$id %in% team])
 team_mean_points <- mean(players$mean_points[players$id %in% team])
 mean(games$points_max) / mean(games$difficulty)
-
