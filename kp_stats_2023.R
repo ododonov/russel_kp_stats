@@ -1,14 +1,18 @@
 library(ggplot2)
 library(stringr)
 library(reshape2)
+library(googlesheets4)
 
 ###
 #Импорт и преобразования
 ###
 
 #Считываем файлы
-players <- read.csv('data/kp_players.csv', header = T, sep = ';')
-games <- read.csv('data/kp_games.csv', header = T, sep = ';')
+#gs4_auth()
+table_url <- 'https://docs.google.com/spreadsheets/d/1jfi1wYi7Ojlx6vsCUEfvrUOx3UvOzB5Lm4ljqGK27Vs/edit#gid=0'
+players <- read_sheet(table_url, sheet = 'players')
+games <- read_sheet(table_url, sheet = 'games')
+rm(table_url)
 
 #Тип даты преобразуем в дату
 games$date <- as.Date(games$date, format = "%d.%m.%y")
