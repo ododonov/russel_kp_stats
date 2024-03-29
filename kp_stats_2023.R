@@ -79,6 +79,7 @@ ggplot(games, aes(x = date, y = rating))+
 ##Расчет лучших пар
 m_size <- length(veterans$id)
 rating_mtx <- matrix(NA, nrow = m_size, ncol = m_size, dimnames = list(veterans$id, veterans$id))
+games_mtx <- matrix(NA, nrow = m_size, ncol = m_size, dimnames = list(veterans$id, veterans$id))
 
 for (i in unlist(dimnames(rating_mtx)[1])) {
   for (j in unlist(dimnames(rating_mtx)[2])) {
@@ -87,25 +88,34 @@ for (i in unlist(dimnames(rating_mtx)[1])) {
       if (any(played_games) > 0) {
         pair_rating <- mean(games$rating[played_games])
         rating_mtx[i,j] <- pair_rating
+        games_mtx[i,j] <- sum(played_games)
       }
     }
   }
 }
-rm(i,j, m_size)
+rm(i,j, m_size, pair_rating, pair_games, played_games)
 
 id_to_name <- setNames(players$name, players$id)
 rownames(rating_mtx) <- id_to_name[rownames(rating_mtx)]
+rownames(games_mtx) <- id_to_name[rownames(games_mtx)]
 colnames(rating_mtx) <- id_to_name[colnames(rating_mtx)]
+colnames(games_mtx) <- id_to_name[colnames(games_mtx)]
 rating_mtx <- rating_mtx[order(rownames(rating_mtx)), order(colnames(rating_mtx))]
+games_mtx <- games_mtx[order(rownames(games_mtx)), order(colnames(games_mtx))]
 
 rating_df <- melt(rating_mtx)
-colnames(rating_df) <- c('player1', 'player2', 'rating')
+games_df <- melt(games_mtx)
+rating_df <- cbind(rating_df, games_df[, 3])
+colnames(rating_df) <- c('player1', 'player2', 'rating', 'games')
+rm(games_mtx, games_df)
 
-ggplot(rating_df, aes(x = player1, y = player2, fill = rating))+
+ggplot(rating_df, aes(x = player1, y = player2, fill = rating, alpha = games))+
   geom_raster() +
+  geom_text(aes(label = games)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # Поворот текста на оси X для лучшей читаемости
-  labs(fill = "Рейтинг", x = "Игрок 1", y = "Игрок 2") + # Подписи
-  scale_fill_gradient(low = "#FF5030", high = "#98FB98")
+  labs(fill = "Рейтинг", x = "Игрок 1", y = "Игрок 2", alpha = "Число игр") + # Подписи
+  scale_fill_gradient(low = "#FF5030", high = "#98FB98") +
+  scale_alpha(range = c(0.5, 1))
 
 rating_mtx[lower.tri(rating_mtx)] <- NA #для удобства табличного представления
 rating_df <- melt(rating_mtx)
