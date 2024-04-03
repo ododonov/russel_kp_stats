@@ -39,6 +39,12 @@ games$team <- lapply(strsplit(games$team, ','), function(x) as.integer(x))
 #Расчеты
 ###
 
+#динамика сложности игры
+ggplot(games, aes(x = date, y = difficulty))+
+  ##geom_line()+
+  geom_smooth()+
+  theme(legend.position = 'bottom')
+
 #средний рейтинг команды среди игр каждого игрока
 for (player in players$id) {
   players$games_number[player] <- length(games$date[unlist(lapply(games$team, function(x) player %in% x))])
